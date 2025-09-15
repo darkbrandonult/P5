@@ -130,8 +130,10 @@
                 <version>0.8.10</version>
                 <configuration>
                     <excludes>
+                        <!-- Simple model classes - plain data containers (POJOs) -->
                         <exclude>**/model/*</exclude>
-                        <exclude>**/dto/*</exclude>
+                        <!-- Main application class - Spring Boot bootstrap code -->
+                        <exclude>**/SafetyNetAlertsApplication.*</exclude>
                     </excludes>
                 </configuration>
                 <executions>
