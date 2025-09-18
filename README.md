@@ -150,7 +150,7 @@ java -jar target/safetynetalerts-1.0.0.jar
 - Handle exceptions appropriately
 
 ## Author
-
+YZ
 Student Project - OpenClassrooms Java Developer Path
 
 ## License
