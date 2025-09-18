@@ -240,14 +240,20 @@
     "address" : "951 LoneTree Rd",
     "station" : "2"
   }, {
+    "address" : "4 rue de la paix",
+    "station" : "10"
+  }, {
+    "address" : "4 rue de la paix",
+    "station" : "10"
+  }, {
+    "address" : "4 rue de la paix",
+    "station" : "10"
+  }, {
+    "address" : "5 rue de la paix",
+    "station" : "10"
+  }, {
     "address" : "address",
     "station" : null
   } ],
-  "medicalrecords" : [ {
-    "firstName" : "John",
-    "lastName" : "Doe",
-    "birthdate" : "01/01/2000",
-    "medications" : null,
-    "allergies" : null
-  } ]
+  "medicalrecords" : [ ]
 }

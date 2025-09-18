@@ -1,26 +1,42 @@
 package com.safetynet.alerts.service;
 
-import com.safetynet.alerts.dto.*;
-import com.safetynet.alerts.model.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Service;
+
+import com.safetynet.alerts.dto.ChildAlertDTO;
+import com.safetynet.alerts.dto.FireDTO;
+import com.safetynet.alerts.dto.FirestationCoverageDTO;
+import com.safetynet.alerts.dto.FloodDTO;
+import com.safetynet.alerts.dto.PersonInfoDTO;
+import com.safetynet.alerts.dto.PhoneAlertDTO;
+import com.safetynet.alerts.model.Firestation;
+import com.safetynet.alerts.model.MedicalRecord;
+import com.safetynet.alerts.model.Person;
+
 @Service
-public class AlertService {
-    @Autowired
-    private PersonService personService;
+public class AlertService implements AlertServiceInterface {
+    
+    private final PersonServiceInterface personService;
+    private final FirestationServiceInterface firestationService;
+    private final MedicalRecordServiceInterface medicalRecordService;
 
-    @Autowired
-    private FirestationService firestationService;
-
-    @Autowired
-    private MedicalRecordService medicalRecordService;
+    public AlertService(PersonServiceInterface personService, 
+                       FirestationServiceInterface firestationService,
+                       MedicalRecordServiceInterface medicalRecordService) {
+        this.personService = personService;
+        this.firestationService = firestationService;
+        this.medicalRecordService = medicalRecordService;
+    }
 
     // Helper method to calculate age from birthdate
     private int calculateAge(String birthdate) {
@@ -33,6 +49,7 @@ public class AlertService {
         }
     }
 
+    @Override
     public ChildAlertDTO getChildAlert(String address) {
         List<Person> personsAtAddress = new ArrayList<>();
         List<Person> allPersons = personService.getAllPersons();
@@ -74,6 +91,7 @@ public class AlertService {
         return new ChildAlertDTO(children, adults);
     }
 
+    @Override
     public List<PhoneAlertDTO> getPhoneAlert(String firestation) {
         List<Firestation> firestations = firestationService.getAllFirestations();
         Set<String> addresses = new HashSet<>();
@@ -100,6 +118,7 @@ public class AlertService {
         return result;
     }
 
+    @Override
     public FireDTO getFireInfo(String address) {
         // Get all persons at the address
         List<Person> allPersons = personService.getAllPersons();
@@ -161,6 +180,7 @@ public class AlertService {
         return result;
     }
 
+    @Override
     public Map<String, List<FloodDTO>> getFloodStations(List<String> stations) { 
         Map<String, List<FloodDTO>> result = new HashMap<>();
         
@@ -226,6 +246,7 @@ public class AlertService {
         return result;
     }
 
+    @Override
     public List<PersonInfoDTO> getPersonInfo(String lastName) { 
         List<PersonInfoDTO> result = new ArrayList<>();
         
@@ -274,6 +295,7 @@ public class AlertService {
         return result;
     }
 
+    @Override
     public List<String> getCommunityEmail(String city) { 
         Set<String> emails = new HashSet<>();
         
@@ -292,6 +314,7 @@ public class AlertService {
         return new ArrayList<>(emails);
     }
 
+    @Override
     public FirestationCoverageDTO getFirestationCoverage(String firestation) {
         List<Firestation> stations = firestationService.getAllFirestations();
         List<String> addresses = stations.stream()

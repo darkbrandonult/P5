@@ -1,113 +1,70 @@
 package com.safetynet.alerts.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.safetynet.alerts.model.MedicalRecord;
+import java.util.List;
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import com.safetynet.alerts.model.MedicalRecord;
+import com.safetynet.alerts.repository.MedicalRecordRepository;
 
 @Service
-public class MedicalRecordService {
+public class MedicalRecordService implements MedicalRecordServiceInterface {
     private static final Logger logger = LoggerFactory.getLogger(MedicalRecordService.class);
-    private final List<MedicalRecord> medicalRecords = new ArrayList<>();
+    
+    private final MedicalRecordRepository medicalRecordRepository;
 
-    @PostConstruct
-    public void init() {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            File file = new File("./data.json");
-            JsonNode root = mapper.readTree(file);
-            JsonNode medicalRecordsNode = root.get("medicalrecords");
-            
-            if (medicalRecordsNode != null && medicalRecordsNode.isArray()) {
-                for (JsonNode node : medicalRecordsNode) {
-                    MedicalRecord record = mapper.treeToValue(node, MedicalRecord.class);
-                    medicalRecords.add(record);
-                }
-            }
-            logger.info("Loaded {} medical records from data.json", medicalRecords.size());
-        } catch (Exception e) {
-            logger.error("Failed to load medical records from data.json", e);
-        }
+    public MedicalRecordService(MedicalRecordRepository medicalRecordRepository) {
+        this.medicalRecordRepository = medicalRecordRepository;
     }
 
+    @Override
     public List<MedicalRecord> getAllMedicalRecords() {
         logger.info("Fetching all medical records");
-        return new ArrayList<>(medicalRecords);
+        return medicalRecordRepository.findAll();
     }
 
+    @Override
     public MedicalRecord addMedicalRecord(MedicalRecord medicalRecord) {
         logger.info("Adding medical record for: {} {}", medicalRecord.getFirstName(), medicalRecord.getLastName());
-        medicalRecords.add(medicalRecord);
-        saveToFile();
-        return medicalRecord;
+        return medicalRecordRepository.save(medicalRecord);
     }
 
+    @Override
     public MedicalRecord getMedicalRecord(String firstName, String lastName) {
-        for (MedicalRecord record : medicalRecords) {
-            if (record.getFirstName().equals(firstName) && record.getLastName().equals(lastName)) {
-                return record;
-            }
+        logger.info("Fetching medical record: {} {}", firstName, lastName);
+        Optional<MedicalRecord> medicalRecord = medicalRecordRepository.findByFirstNameAndLastName(firstName, lastName);
+        if (medicalRecord.isPresent()) {
+            return medicalRecord.get();
         }
         logger.warn("Medical record not found: {} {}", firstName, lastName);
         return null;
     }
 
+    @Override
     public MedicalRecord updateMedicalRecord(String firstName, String lastName, MedicalRecord medicalRecord) {
-        for (int i = 0; i < medicalRecords.size(); i++) {
-            MedicalRecord record = medicalRecords.get(i);
-            if (record.getFirstName().equals(firstName) && record.getLastName().equals(lastName)) {
-                medicalRecords.set(i, medicalRecord);
-                logger.info("Medical record updated: {} {}", firstName, lastName);
-                saveToFile();
-                return medicalRecord;
-            }
+        logger.info("Updating medical record: {} {}", firstName, lastName);
+        
+        // Ensure the medical record has the correct names
+        medicalRecord.setFirstName(firstName);
+        medicalRecord.setLastName(lastName);
+        
+        if (medicalRecordRepository.existsByFirstNameAndLastName(firstName, lastName)) {
+            return medicalRecordRepository.update(medicalRecord);
+        } else {
+            logger.warn("Medical record not found for update: {} {}", firstName, lastName);
+            return null;
         }
-        logger.warn("Medical record not found for update: {} {}", firstName, lastName);
-        return null;
     }
 
+    @Override
     public void deleteMedicalRecord(String firstName, String lastName) {
         logger.info("Deleting medical record: {} {}", firstName, lastName);
-        Iterator<MedicalRecord> iterator = medicalRecords.iterator();
-        while (iterator.hasNext()) {
-            MedicalRecord record = iterator.next();
-            if (record.getFirstName().equals(firstName) && record.getLastName().equals(lastName)) {
-                iterator.remove();
-                logger.info("Medical record deleted: {} {}", firstName, lastName);
-                saveToFile();
-                return;
-            }
-        }
-        logger.warn("Medical record not found for deletion: {} {}", firstName, lastName);
-    }
-
-    private void saveToFile() {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            File file = new File("./data.json");
-            
-            // Read existing data to preserve other sections (persons, firestations)
-            JsonNode root = mapper.readTree(file);
-            
-            // Update only the medicalrecords section
-            if (root instanceof com.fasterxml.jackson.databind.node.ObjectNode) {
-                ((com.fasterxml.jackson.databind.node.ObjectNode) root).set("medicalrecords", 
-                    mapper.valueToTree(medicalRecords));
-            }
-            
-            // Write back to file
-            mapper.writerWithDefaultPrettyPrinter().writeValue(file, root);
-            logger.info("Saved {} medical records to data.json", medicalRecords.size());
-        } catch (Exception e) {
-            logger.error("Failed to save medical records to data.json", e);
+        boolean deleted = medicalRecordRepository.deleteByFirstNameAndLastName(firstName, lastName);
+        if (!deleted) {
+            logger.warn("Medical record not found for deletion: {} {}", firstName, lastName);
         }
     }
 }

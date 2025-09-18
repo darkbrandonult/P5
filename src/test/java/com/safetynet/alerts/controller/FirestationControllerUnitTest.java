@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.doNothing;
@@ -62,7 +61,7 @@ class FirestationControllerUnitTest {
         Firestation firestation = new Firestation();
         firestation.setAddress("1509 Culver St");
         firestation.setStation("3");
-        when(firestationService.updateFirestation(eq("1509 Culver St"), any(Firestation.class))).thenReturn(firestation);
+        when(firestationService.updateFirestation(any(Firestation.class))).thenReturn(firestation);
         ResponseEntity<Firestation> response = firestationController.updateFirestation("1509 Culver St", firestation);
         assertEquals(firestation, response.getBody());
         assertEquals(200, response.getStatusCodeValue());

@@ -49,7 +49,11 @@ public class FirestationController {
     @PutMapping("/address/{address}")
     public ResponseEntity<Firestation> updateFirestation(@PathVariable String address, @RequestBody Firestation firestation) {
         log.info("PUT /firestations/address/{}", address);
-        Firestation result = firestationService.updateFirestation(address, firestation);
+        
+        // Ensure the firestation has the correct address
+        firestation.setAddress(address);
+        
+        Firestation result = firestationService.updateFirestation(firestation);
         log.info("Returning updated firestation: {}", result);
         return ResponseEntity.ok(result);
     }
