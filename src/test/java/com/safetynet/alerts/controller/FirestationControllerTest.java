@@ -14,7 +14,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.ArgumentMatchers.any;
 
 class FirestationControllerTest {
     @Mock
@@ -61,8 +60,7 @@ class FirestationControllerTest {
     @Test
     void updateFirestation_works() {
         Firestation f = new Firestation();
-        f.setAddress("A");
-        when(firestationService.updateFirestation(any(Firestation.class))).thenReturn(f);
+        when(firestationService.updateFirestation("A", f)).thenReturn(f);
         ResponseEntity<Firestation> response = firestationController.updateFirestation("A", f);
         assertEquals(f, response.getBody());
     }
