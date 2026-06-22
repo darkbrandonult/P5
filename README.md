@@ -1,158 +1,63 @@
-# SafetyNet Alerts
+# SafetyNet Alerts - README
 
-A Spring Boot REST API application for emergency management and safety alerts.
-
-## Project Overview
-
-SafetyNet Alerts is designed to provide critical information to emergency services. The application manages data about residents, fire stations, and medical records, offering various endpoints to retrieve safety-related information during emergencies.
+## Project Description
+SafetyNet Alerts is a Spring Boot-based application for emergency management. It provides REST endpoints to manage and query fire stations, medical records, and residents in a community. The project is designed with clean architecture, SOLID principles, and includes comprehensive unit testing and code coverage.
 
 ## Technology Stack
-
-- **Java**: 21
-- **Framework**: Spring Boot 2.7.18
-- **Build Tool**: Maven 3.6+
-- **Testing**: JUnit 5, Mockito
-- **Code Coverage**: JaCoCo
-- **JSON Processing**: Jackson
-- **Logging**: SLF4J with Logback
+- Java 21
+- Spring Boot
+- Maven
+- JUnit 5
+- Jacoco
+- Surefire
+- Spring Web
+- Jackson
+- Mockito
+- Lombok
 
 ## Prerequisites
-
 - Java 21 or higher
-- Maven 3.6 or higher
+- Maven
 
-## Installation & Setup
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd safetynetalerts
+## Setup Instructions
+1. **Clone the Repository**
+   ```sh
+   git clone <repository_url>
    ```
-
-2. **Install dependencies**
-   ```bash
-   mvn clean install
+2. **Install Dependencies**
+   ```sh
+   cd <project_folder>
+   mvn install
    ```
-
-3. **Run the application**
-   ```bash
+3. **Run the Application**
+   ```sh
    mvn spring-boot:run
    ```
+   The application will be accessible at http://localhost:8080
 
-4. **Application will be available at**
-   ```
-   http://localhost:8080
-   ```
-
-## API Endpoints
-
-### Safety Alert Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/firestation?stationNumber={number}` | GET | People covered by fire station with adult/child counts |
-| `/childAlert?address={address}` | GET | Children at address with household members |
-| `/phoneAlert?firestation={number}` | GET | Phone numbers of residents served by fire station |
-| `/fire?address={address}` | GET | Residents at address with medical info and fire station |
-| `/flood/stations?stations={numbers}` | GET | Homes served by fire stations grouped by address |
-| `/personInfo?lastName={lastName}` | GET | Person details with medical history |
-| `/communityEmail?city={city}` | GET | Email addresses of city residents |
-
-### Data Management Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/persons` | GET | Get all persons |
-| `/persons` | POST | Add new person |
-| `/persons/name/{firstName}/{lastName}` | GET | Get specific person |
-| `/persons/name/{firstName}/{lastName}` | PUT | Update person |
-| `/persons/name/{firstName}/{lastName}` | DELETE | Delete person |
-| `/firestations` | GET/POST | Manage fire stations |
-| `/medicalRecord` | GET/POST/PUT/DELETE | Manage medical records |
-
-## Data Structure
-
-The application uses a JSON file (`data.json`) containing:
-
-- **Persons**: First name, last name, address, city, zip, phone, email
-- **Fire Stations**: Address and station number mappings
-- **Medical Records**: Birthdate, medications, allergies
-
-## Testing
-
-### Run All Tests
-```bash
-mvn test
-```
-
-### Generate Test Reports
-```bash
-mvn clean test
-```
-
-### View Coverage Reports
-- **JaCoCo Report**: `target/site/jacoco/index.html`
-- **Surefire Report**: `target/site/surefire-report.html`
-
-### Test Coverage
-The project maintains high test coverage with:
-- Unit tests for all service classes
-- Integration tests for all controllers
-- DTO tests for data transfer objects
-- Comprehensive test scenarios
-
-## Architecture
-
-### Package Structure
-```
-com.safetynet.alerts/
-├── controller/          # REST controllers
-├── service/            # Business logic
-├── model/              # Entity classes
-├── dto/                # Data transfer objects
-└── SafetyNetAlertsApplication.java
-```
-
-### Design Patterns
-- **MVC Pattern**: Clear separation of concerns
-- **Dependency Injection**: Spring's IoC container
-- **DTO Pattern**: Data transfer objects for API responses
-- **Service Layer Pattern**: Business logic encapsulation
-
-## Features
-
-- ✅ Complete REST API with 7 safety alert endpoints
-- ✅ Full CRUD operations for persons, fire stations, and medical records
-- ✅ Data persistence with JSON file storage
-- ✅ Comprehensive unit and integration testing
-- ✅ High code coverage (80%+)
-- ✅ Proper error handling and logging
-- ✅ Clean code architecture following SOLID principles
-
-## Build & Deployment
-
-### Create JAR file
-```bash
-mvn clean package
-```
-
-### Run JAR file
-```bash
-java -jar target/safetynetalerts-1.0.0.jar
-```
+## Endpoints
+- `GET /firestation?stationNumber=<station_number>`: List of people covered by the fire station, with names, addresses, phone numbers, and counts of adults/children.
+- `GET /childAlert?address=<address>`: List of children at an address, with age and household members.
+- `GET /phoneAlert?firestation=<firestation_number>`: List of phone numbers for residents served by a fire station.
+- `GET /fire?address=<address>`: List of people at an address, with medical history and fire station number.
+- `GET /flood/stations?stations=<station_numbers>`: List of homes served by multiple fire stations, grouped by address.
+- `GET /personInfo?lastName=<last_name>`: Details (name, address, age, email, medical history) for all people with the given last name.
+- `GET /communityEmail?city=<city>`: Email addresses of all residents in the specified city.
 
 ## Development Guidelines
+- Architecture: MVC
+- SOLID Principles: Code is structured for maintainability and scalability.
 
-- Follow SOLID principles
-- Maintain test coverage above 80%
-- Use meaningful commit messages
-- Document public methods and classes
-- Handle exceptions appropriately
+## Testing and Code Coverage
+- Unit tests are implemented using JUnit and Mockito.
+- Jacoco is used for code coverage (80%+ required).
+- Maven Surefire plugin generates detailed test reports.
 
-## Author
-YZ
-Student Project - OpenClassrooms Java Developer Path
+## Documentation
+- Jacoco: `target/site/jacoco/index.html`
+- Surefire: `target/site/surefire-report.html`
 
-## License
-
-This project is developed for educational purposes as part of the OpenClassrooms Java Developer certification program.
+## Additional Links
+- [Spring Boot Documentation](https://spring.io/projects/spring-boot)
+- [Jacoco Documentation](https://www.jacoco.org/jacoco/trunk/doc/)
+- [JUnit 5 Documentation](https://junit.org/junit5/)
