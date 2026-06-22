@@ -13,7 +13,8 @@ public class PersonInfoDTO {
 
     public PersonInfoDTO() {}
 
-    public PersonInfoDTO(String firstName, String lastName, String address, int age, String email, List<String> medications, List<String> allergies) {
+    public PersonInfoDTO(String firstName, String lastName, String address, int age,
+                         String email, List<String> medications, List<String> allergies) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.address = address;

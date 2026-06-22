@@ -1,7 +1,6 @@
 package com.safetynet.alerts.dto;
 
 import java.util.List;
-
 import com.safetynet.alerts.model.Person;
 
 public class FirestationCoverageDTO {
@@ -23,19 +22,4 @@ public class FirestationCoverageDTO {
     public void setChildCount(int childCount) { this.childCount = childCount; }
     public int getAdultCount() { return adultCount; }
     public void setAdultCount(int adultCount) { this.adultCount = adultCount; }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        FirestationCoverageDTO that = (FirestationCoverageDTO) o;
-        return childCount == that.childCount &&
-                adultCount == that.adultCount &&
-                java.util.Objects.equals(persons, that.persons);
-    }
-
-    @Override
-    public int hashCode() {
-        return java.util.Objects.hash(persons, childCount, adultCount);
-    }
 }
