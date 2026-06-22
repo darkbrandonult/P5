@@ -1,66 +1,99 @@
 package com.safetynet.alerts.service;
 
-import java.util.List;
-import java.util.Optional;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.safetynet.alerts.model.Firestation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
-import com.safetynet.alerts.model.Firestation;
-import com.safetynet.alerts.repository.FirestationRepository;
+import javax.annotation.PostConstruct;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 @Service
-public class FirestationService implements FirestationServiceInterface {
+public class FirestationService {
     private static final Logger logger = LoggerFactory.getLogger(FirestationService.class);
-    
-    private final FirestationRepository firestationRepository;
+    private final List<Firestation> firestations = new ArrayList<>();
 
-    public FirestationService(FirestationRepository firestationRepository) {
-        this.firestationRepository = firestationRepository;
+    @PostConstruct
+    public void init() {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            File file = new File("./data.json");
+            JsonNode root = mapper.readTree(file);
+            JsonNode firestationsNode = root.get("firestations");
+            if (firestationsNode != null && firestationsNode.isArray()) {
+                for (JsonNode node : firestationsNode) {
+                    Firestation firestation = mapper.treeToValue(node, Firestation.class);
+                    firestations.add(firestation);
+                }
+            }
+            logger.info("Loaded {} firestations from data.json", firestations.size());
+        } catch (Exception e) {
+            logger.error("Failed to load firestations from data.json", e);
+        }
     }
 
-    @Override
     public List<Firestation> getAllFirestations() {
         logger.info("Fetching all firestations");
-        return firestationRepository.findAll();
+        return new ArrayList<>(firestations);
     }
 
-    @Override
     public Firestation addFirestation(Firestation firestation) {
         logger.info("Adding firestation: {}", firestation.getAddress());
-        return firestationRepository.save(firestation);
+        firestations.add(firestation);
+        return firestation;
     }
 
-    @Override
     public Firestation updateFirestation(Firestation firestation) {
         logger.info("Updating firestation: {}", firestation.getAddress());
-        
-        if (firestationRepository.existsByAddress(firestation.getAddress())) {
-            return firestationRepository.update(firestation);
-        } else {
-            logger.warn("Firestation not found for update: {}", firestation.getAddress());
-            return null;
+        for (int i = 0; i < firestations.size(); i++) {
+            Firestation f = firestations.get(i);
+            if (f.getAddress().equals(firestation.getAddress())) {
+                firestations.set(i, firestation);
+                return firestation;
+            }
         }
+        logger.warn("Firestation not found: {}", firestation.getAddress());
+        return null;
     }
 
-    @Override
     public void deleteFirestation(String address) {
         logger.info("Deleting firestation: {}", address);
-        boolean deleted = firestationRepository.deleteByAddress(address);
-        if (!deleted) {
-            logger.warn("Firestation not found for deletion: {}", address);
+        Iterator<Firestation> iterator = firestations.iterator();
+        while (iterator.hasNext()) {
+            Firestation f = iterator.next();
+            if (f.getAddress().equals(address)) {
+                iterator.remove();
+                logger.info("Firestation deleted: {}", address);
+                return;
+            }
         }
+        logger.warn("Firestation not found for deletion: {}", address);
     }
 
-    @Override
     public Firestation getFirestationByAddress(String address) {
-        logger.info("Fetching firestation by address: {}", address);
-        Optional<Firestation> firestation = firestationRepository.findByAddress(address);
-        if (firestation.isPresent()) {
-            return firestation.get();
+        for (Firestation f : firestations) {
+            if (f.getAddress().equals(address)) {
+                return f;
+            }
         }
         logger.warn("Firestation not found: {}", address);
+        return null;
+    }
+
+    public Firestation updateFirestation(String address, Firestation firestation) {
+        for (int i = 0; i < firestations.size(); i++) {
+            Firestation f = firestations.get(i);
+            if (f.getAddress().equals(address)) {
+                firestations.set(i, firestation);
+                logger.info("Firestation updated: {}", address);
+                return firestation;
+            }
+        }
+        logger.warn("Firestation not found for update: {}", address);
         return null;
     }
 }

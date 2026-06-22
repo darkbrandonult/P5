@@ -1,70 +1,87 @@
 package com.safetynet.alerts.service;
 
-import java.util.List;
-import java.util.Optional;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.safetynet.alerts.model.Person;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.safetynet.alerts.model.Person;
-import com.safetynet.alerts.repository.PersonRepository;
+import javax.annotation.PostConstruct;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 @Service
-public class PersonService implements PersonServiceInterface {
+public class PersonService {
     private static final Logger logger = LoggerFactory.getLogger(PersonService.class);
-    
-    private final PersonRepository personRepository;
+    private final List<Person> persons = new ArrayList<>();
 
-    public PersonService(PersonRepository personRepository) {
-        this.personRepository = personRepository;
+    @PostConstruct
+    public void init() {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            File file = new File("./data.json");
+            JsonNode root = mapper.readTree(file);
+            JsonNode personsNode = root.get("persons");
+            if (personsNode != null && personsNode.isArray()) {
+                for (JsonNode node : personsNode) {
+                    Person person = mapper.treeToValue(node, Person.class);
+                    persons.add(person);
+                }
+            }
+            logger.info("Loaded {} persons from data.json", persons.size());
+        } catch (Exception e) {
+            logger.error("Failed to load persons from data.json", e);
+        }
     }
 
-    @Override
     public List<Person> getAllPersons() {
         logger.info("Fetching all persons");
-        return personRepository.findAll();
+        return new ArrayList<>(persons);
     }
 
-    @Override
     public Person addPerson(Person person) {
         logger.info("Adding person: {} {}", person.getFirstName(), person.getLastName());
-        return personRepository.save(person);
+        persons.add(person);
+        return person;
     }
 
-    @Override
     public Person getPerson(String firstName, String lastName) {
-        logger.info("Fetching person: {} {}", firstName, lastName);
-        Optional<Person> person = personRepository.findByFirstNameAndLastName(firstName, lastName);
-        if (person.isPresent()) {
-            return person.get();
+        for (Person p : persons) {
+            if (p.getFirstName().equals(firstName) && p.getLastName().equals(lastName)) {
+                return p;
+            }
         }
         logger.warn("Person not found: {} {}", firstName, lastName);
         return null;
     }
 
-    @Override
     public Person updatePerson(String firstName, String lastName, Person person) {
-        logger.info("Updating person: {} {}", firstName, lastName);
-        
-        // Ensure the person has the correct names
-        person.setFirstName(firstName);
-        person.setLastName(lastName);
-        
-        if (personRepository.existsByFirstNameAndLastName(firstName, lastName)) {
-            return personRepository.update(person);
-        } else {
-            logger.warn("Person not found for update: {} {}", firstName, lastName);
-            return null;
+        for (int i = 0; i < persons.size(); i++) {
+            Person p = persons.get(i);
+            if (p.getFirstName().equals(firstName) && p.getLastName().equals(lastName)) {
+                persons.set(i, person);
+                logger.info("Person updated: {} {}", firstName, lastName);
+                return person;
+            }
         }
+        logger.warn("Person not found for update: {} {}", firstName, lastName);
+        return null;
     }
 
-    @Override
     public void deletePerson(String firstName, String lastName) {
         logger.info("Deleting person: {} {}", firstName, lastName);
-        boolean deleted = personRepository.deleteByFirstNameAndLastName(firstName, lastName);
-        if (!deleted) {
-            logger.warn("Person not found for deletion: {} {}", firstName, lastName);
+        Iterator<Person> iterator = persons.iterator();
+        while (iterator.hasNext()) {
+            Person p = iterator.next();
+            if (p.getFirstName().equals(firstName) && p.getLastName().equals(lastName)) {
+                iterator.remove();
+                logger.info("Person deleted: {} {}", firstName, lastName);
+                return;
+            }
         }
+        logger.warn("Person not found for deletion: {} {}", firstName, lastName);
     }
 }
