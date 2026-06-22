@@ -44,17 +44,11 @@ public class Person {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Person person = (Person) o;
-        return java.util.Objects.equals(firstName, person.firstName) &&
-                java.util.Objects.equals(lastName, person.lastName) &&
-                java.util.Objects.equals(address, person.address) &&
-                java.util.Objects.equals(city, person.city) &&
-                java.util.Objects.equals(zip, person.zip) &&
-                java.util.Objects.equals(phone, person.phone) &&
-                java.util.Objects.equals(email, person.email);
+        return firstName.equals(person.firstName) && lastName.equals(person.lastName);
     }
 
     @Override
     public int hashCode() {
-        return java.util.Objects.hash(firstName, lastName, address, city, zip, phone, email);
+        return java.util.Objects.hash(firstName, lastName);
     }
 }

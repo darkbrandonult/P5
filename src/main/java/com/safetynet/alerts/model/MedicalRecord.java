@@ -1,7 +1,6 @@
 package com.safetynet.alerts.model;
 
 import java.util.List;
-import java.util.Objects;
 
 public class MedicalRecord {
     private String firstName;
@@ -22,21 +21,4 @@ public class MedicalRecord {
     public void setMedications(List<String> medications) { this.medications = medications; }
     public List<String> getAllergies() { return allergies; }
     public void setAllergies(List<String> allergies) { this.allergies = allergies; }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        MedicalRecord that = (MedicalRecord) o;
-        return Objects.equals(firstName, that.firstName) &&
-                Objects.equals(lastName, that.lastName) &&
-                Objects.equals(birthdate, that.birthdate) &&
-                Objects.equals(medications, that.medications) &&
-                Objects.equals(allergies, that.allergies);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(firstName, lastName, birthdate, medications, allergies);
-    }
 }
