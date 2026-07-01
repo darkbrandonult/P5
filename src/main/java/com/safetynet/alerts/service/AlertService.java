@@ -5,7 +5,6 @@ import com.safetynet.alerts.dto.*;
 import com.safetynet.alerts.model.Person;
 import com.safetynet.alerts.model.Firestation;
 import com.safetynet.alerts.model.MedicalRecord;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import java.time.LocalDate;
@@ -15,12 +14,17 @@ import java.time.Period;
 @Service
 public class AlertService {
 
-    @Autowired
-    private FirestationService firestationService;
-    @Autowired
-    private PersonService personService;
-    @Autowired
-    private MedicalRecordService medicalRecordService;
+    private final FirestationService firestationService;
+    private final PersonService personService;
+    private final MedicalRecordService medicalRecordService;
+
+    public AlertService(FirestationService firestationService,
+                        PersonService personService,
+                        MedicalRecordService medicalRecordService) {
+        this.firestationService = firestationService;
+        this.personService = personService;
+        this.medicalRecordService = medicalRecordService;
+    }
 
     public FirestationCoverageDTO getFirestationCoverage(String stationNumber) {
         // 1. Get all addresses for the given station number

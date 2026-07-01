@@ -1,99 +1,73 @@
 package com.safetynet.alerts.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.alerts.model.MedicalRecord;
+import com.safetynet.alerts.repository.DataRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import javax.annotation.PostConstruct;
-import java.io.File;
+
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Handles business logic for MedicalRecord resources.
+ * Delegates all data access and persistence to DataRepository.
+ */
 @Service
 public class MedicalRecordService {
-    private static final Logger logger = LoggerFactory.getLogger(MedicalRecordService.class);
-    private final List<MedicalRecord> medicalRecords = new ArrayList<>();
 
-    @PostConstruct
-    public void init() {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            File file = new File("./data.json");
-            JsonNode root = mapper.readTree(file);
-            JsonNode medicalRecordsNode = root.get("medicalrecords");
-            if (medicalRecordsNode != null && medicalRecordsNode.isArray()) {
-                for (JsonNode node : medicalRecordsNode) {
-                    MedicalRecord medicalRecord = mapper.treeToValue(node, MedicalRecord.class);
-                    medicalRecords.add(medicalRecord);
-                }
-            }
-            logger.info("Loaded {} medical records from data.json", medicalRecords.size());
-        } catch (Exception e) {
-            logger.error("Failed to load medical records from data.json", e);
-        }
+    private static final Logger logger = LoggerFactory.getLogger(MedicalRecordService.class);
+    private final DataRepository dataRepository;
+
+    public MedicalRecordService(DataRepository dataRepository) {
+        this.dataRepository = dataRepository;
     }
 
     public List<MedicalRecord> getAllMedicalRecords() {
-        logger.info("Fetching all medical records");
-        return new ArrayList<>(medicalRecords);
-    }
-
-    public MedicalRecord addMedicalRecord(MedicalRecord medicalRecord) {
-        logger.info("Adding medical record: {} {}", medicalRecord.getFirstName(), medicalRecord.getLastName());
-        medicalRecords.add(medicalRecord);
-        return medicalRecord;
+        return new ArrayList<>(dataRepository.getMedicalRecords());
     }
 
     public MedicalRecord getMedicalRecord(String firstName, String lastName) {
-        for (MedicalRecord m : medicalRecords) {
-            if (m.getFirstName().equals(firstName) && m.getLastName().equals(lastName)) {
-                return m;
-            }
-        }
-        logger.warn("Medical record not found: {} {}", firstName, lastName);
-        return null;
+        return dataRepository.getMedicalRecords().stream()
+                .filter(m -> m.getFirstName().equals(firstName) && m.getLastName().equals(lastName))
+                .findFirst()
+                .orElse(null);
     }
 
-    public MedicalRecord updateMedicalRecord(MedicalRecord medicalRecord) {
-        logger.info("Updating medical record: {} {}", medicalRecord.getFirstName(), medicalRecord.getLastName());
-        for (int i = 0; i < medicalRecords.size(); i++) {
-            MedicalRecord m = medicalRecords.get(i);
-            if (m.getFirstName().equals(medicalRecord.getFirstName()) && m.getLastName().equals(medicalRecord.getLastName())) {
-                medicalRecords.set(i, medicalRecord);
-                return medicalRecord;
-            }
-        }
-        logger.warn("Medical record not found: {} {}", medicalRecord.getFirstName(), medicalRecord.getLastName());
-        return null;
+    public MedicalRecord addMedicalRecord(MedicalRecord record) {
+        logger.info("Adding medical record: {} {}", record.getFirstName(), record.getLastName());
+        dataRepository.getMedicalRecords().add(record);
+        dataRepository.save();
+        return record;
     }
 
-    public MedicalRecord updateMedicalRecord(String firstName, String lastName, MedicalRecord medicalRecord) {
-        for (int i = 0; i < medicalRecords.size(); i++) {
-            MedicalRecord m = medicalRecords.get(i);
+    public MedicalRecord updateMedicalRecord(String firstName, String lastName, MedicalRecord updated) {
+        List<MedicalRecord> records = dataRepository.getMedicalRecords();
+        for (int i = 0; i < records.size(); i++) {
+            MedicalRecord m = records.get(i);
             if (m.getFirstName().equals(firstName) && m.getLastName().equals(lastName)) {
-                medicalRecords.set(i, medicalRecord);
+                records.set(i, updated);
                 logger.info("Medical record updated: {} {}", firstName, lastName);
-                return medicalRecord;
+                dataRepository.save();
+                return updated;
             }
         }
         logger.warn("Medical record not found for update: {} {}", firstName, lastName);
         return null;
     }
 
+    public MedicalRecord updateMedicalRecord(MedicalRecord updated) {
+        return updateMedicalRecord(updated.getFirstName(), updated.getLastName(), updated);
+    }
+
     public void deleteMedicalRecord(String firstName, String lastName) {
-        logger.info("Deleting medical record: {} {}", firstName, lastName);
-        Iterator<MedicalRecord> iterator = medicalRecords.iterator();
-        while (iterator.hasNext()) {
-            MedicalRecord m = iterator.next();
-            if (m.getFirstName().equals(firstName) && m.getLastName().equals(lastName)) {
-                iterator.remove();
-                logger.info("Medical record deleted: {} {}", firstName, lastName);
-                return;
-            }
+        boolean removed = dataRepository.getMedicalRecords().removeIf(
+                m -> m.getFirstName().equals(firstName) && m.getLastName().equals(lastName));
+        if (removed) {
+            logger.info("Medical record deleted: {} {}", firstName, lastName);
+            dataRepository.save();
+        } else {
+            logger.warn("Medical record not found for deletion: {} {}", firstName, lastName);
         }
-        logger.warn("Medical record not found for deletion: {} {}", firstName, lastName);
     }
 }
