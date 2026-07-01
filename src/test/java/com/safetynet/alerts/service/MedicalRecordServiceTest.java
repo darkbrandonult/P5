@@ -1,6 +1,7 @@
 package com.safetynet.alerts.service;
 
 import com.safetynet.alerts.model.MedicalRecord;
+import com.safetynet.alerts.repository.DataRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -10,17 +11,14 @@ class MedicalRecordServiceTest {
 
     @BeforeEach
     void setUp() {
-        medicalRecordService = new MedicalRecordService();
-        medicalRecordService.getAllMedicalRecords().clear();
+        medicalRecordService = new MedicalRecordService(new DataRepository());
     }
 
     @Test
     void addAndGetMedicalRecord() {
         MedicalRecord record = new MedicalRecord(); record.setFirstName("John"); record.setLastName("Doe");
         medicalRecordService.addMedicalRecord(record);
-        MedicalRecord found = medicalRecordService.getMedicalRecord("John", "Doe");
-        assertNotNull(found);
-        assertEquals("John", found.getFirstName());
+        assertNotNull(medicalRecordService.getMedicalRecord("John", "Doe"));
     }
 
     @Test
@@ -34,13 +32,32 @@ class MedicalRecordServiceTest {
     }
 
     @Test
-    void updateMedicalRecord_success() {
+    void updateMedicalRecord_byStrings_success() {
         MedicalRecord record = new MedicalRecord(); record.setFirstName("John"); record.setLastName("Doe");
         medicalRecordService.addMedicalRecord(record);
         MedicalRecord updated = new MedicalRecord(); updated.setFirstName("John"); updated.setLastName("Doe"); updated.setBirthdate("01/01/2000");
         medicalRecordService.updateMedicalRecord("John", "Doe", updated);
-        MedicalRecord found = medicalRecordService.getMedicalRecord("John", "Doe");
-        assertEquals("01/01/2000", found.getBirthdate());
+        assertEquals("01/01/2000", medicalRecordService.getMedicalRecord("John", "Doe").getBirthdate());
+    }
+
+    @Test
+    void updateMedicalRecord_byStrings_notFound() {
+        MedicalRecord updated = new MedicalRecord(); updated.setFirstName("Foo"); updated.setLastName("Bar");
+        assertNull(medicalRecordService.updateMedicalRecord("Foo", "Bar", updated));
+    }
+
+    @Test
+    void updateMedicalRecord_byObject_success() {
+        MedicalRecord record = new MedicalRecord(); record.setFirstName("John"); record.setLastName("Doe");
+        medicalRecordService.addMedicalRecord(record);
+        MedicalRecord updated = new MedicalRecord(); updated.setFirstName("John"); updated.setLastName("Doe"); updated.setBirthdate("05/05/1995");
+        assertNotNull(medicalRecordService.updateMedicalRecord(updated));
+    }
+
+    @Test
+    void updateMedicalRecord_byObject_notFound() {
+        MedicalRecord updated = new MedicalRecord(); updated.setFirstName("Foo"); updated.setLastName("Bar");
+        assertNull(medicalRecordService.updateMedicalRecord(updated));
     }
 
     @Test
@@ -49,5 +66,11 @@ class MedicalRecordServiceTest {
         medicalRecordService.addMedicalRecord(record);
         medicalRecordService.deleteMedicalRecord("John", "Doe");
         assertNull(medicalRecordService.getMedicalRecord("John", "Doe"));
+    }
+
+    @Test
+    void deleteMedicalRecord_notFound_noError() {
+        medicalRecordService.deleteMedicalRecord("Foo", "Bar");
+        assertTrue(medicalRecordService.getAllMedicalRecords().isEmpty());
     }
 }
